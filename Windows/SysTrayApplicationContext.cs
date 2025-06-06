@@ -2,12 +2,14 @@
 using System.ComponentModel;
 using System.Text.Json;
 using System.Windows.Forms;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration.Json;
 
 namespace Chetch.Windows;
 
 abstract public class SysTrayApplicationContext : ApplicationContext
 {
-    protected Dictionary<String, Object> Config { get; set; } = new Dictionary<String, Object>();
+    protected IConfiguration? Config { get; set; } = null;
     protected String? NotifyIconPath { get; set; }
     protected String? NotifyIconText { get; set; }
 
@@ -21,13 +23,8 @@ abstract public class SysTrayApplicationContext : ApplicationContext
         foreach (var f in settingsFiles) {
             if (File.Exists(f))
             {
-                String json = File.ReadAllText(f);
-                var cfg = JsonSerializer.Deserialize<Dictionary<String, Object>>(json);
-                if (cfg != null)
-                {
-                    Config = cfg;
-                    break;
-                }
+                var configBuilder = new ConfigurationBuilder().AddJsonFile(f, false, false);
+                Config = configBuilder.Build();
             }
         }
         InitializeContext(asSysTray);
